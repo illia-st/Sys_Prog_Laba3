@@ -50,12 +50,12 @@ public class Tokenizer {
             value = token_value;
         }
     }
-    private final static String CommentStart = "(/\\*|//)";
+    private final static String CommentStart = "((\\/\\*.*\\*\\/)|(\\/\\*.*)|(\\/\\/.*))";
     private final static String HEADERS = "(<[^>]+>)";
     private final static String Preproc_directives = "(#[a-z|\\S]{2,})";
     private final static String STRING_LITERALS = "(\\\"[^\\\"]*\\\")";
     private final static String Char_Literals = "('[^']{0,1}')";
-    private final static String Number_Literal = "((0x[A-Fa-f0-9]*)|([\\d]+[.]?[\\d]*))";
+    private final static String Number_Literal = "((0x[A-Fa-f0-9]+)|([\\d]+[.]?[\\d]*))";
     private final static String Wrong_number_Literals = "((" + Number_Literal + "[A-z]+" + Number_Literal + ")|(" + Number_Literal + "[A-z]+))";
     private final static String Wrong_String_literals =
             "([A-z|0-9]+" + STRING_LITERALS + "[A-z|0-9]+|[A-z|0-9]+" + STRING_LITERALS + "|" + STRING_LITERALS + "[A-z|0-9]+)";
@@ -88,7 +88,7 @@ public class Tokenizer {
                 return "";
             }
             inComment = false;
-            line = line.substring(index_of_comment_end + 1);
+            line = line.substring(index_of_comment_end + 2);
         }
         if(line.isEmpty()) return "";
         int start = 0, end = 0, index = 0;
@@ -150,6 +150,18 @@ public class Tokenizer {
                     break;
                 case WRONG_NUMBER_LITERALS:
                     index = line.indexOf(found_value);
+                    if (found_value.startsWith("0") && found_value.charAt(1) == 'x') {
+                        boolean flag = true;
+                        for(int i = 2; i < found_value.length(); ++i){
+                            if(!Character.isLetterOrDigit(found_value.charAt(i))){
+                                flag = false;
+                                break;
+                            }
+                        }
+                        if(flag){
+                            break;
+                        }
+                    }
                     if(index != 0 && ((line.charAt(index - 1) < 65 && line.charAt(index - 1) > 90
                         || (line.charAt(index - 1) < 97 && line.charAt(index - 1) > 122)))) {
                         tokens.add(new Token(TokenType.ERROR, found_value));
@@ -175,6 +187,18 @@ public class Tokenizer {
                     break;
                 case IDENTIFIER:
                     index = line.indexOf(found_value);
+                    if(index != 0 && line.charAt(index - 1) == '0' && found_value.startsWith("x")){
+                        boolean flag = true;
+                        for(int i = 2; i < found_value.length(); ++i){
+                            if(!Character.isLetterOrDigit(found_value.charAt(i))){
+                                flag = false;
+                                break;
+                            }
+                        }
+                        if(flag){
+                            break;
+                        }
+                    }
                     tokens.add(new Token(TokenType.IDENTIFIER, found_value));
                     start = index;
                     end = index + found_value.length();

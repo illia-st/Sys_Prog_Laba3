@@ -88,12 +88,12 @@ public class Main {
                     System.out.println("Bye");
                     return;
                 }
-                String output_file_path = Processing(false);
+//                String output_file_path = Processing(false);
                 Tokenizer tokenizer = new Tokenizer();
                 var text = ReadFile(file_path);
                 text = Preprocessor.Preprocess(text);
                 var tokens = tokenizer.Analise(text);
-                PrintToFile(output_file_path, tokens);
+                PrintToFile("output.txt", tokens);
                 tokenizer.Clear();
             } catch (Exception ex) {
                 System.out.println("An exception was occurred. Description: " + ex.getMessage());
